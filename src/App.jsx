@@ -12,7 +12,7 @@ const fighters = [
     techniques: ["Demonsbane", "Advance", "Ironbreaker"],
     color: "from-red-900 to-black",
     record: "72 Wins, 2 Losses",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/b/b5/Ohma_Tokita_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b137446-umIgsem3URij.png"
   },
   {
     id: 2,
@@ -24,7 +24,7 @@ const fighters = [
     techniques: ["Flash", "God Glow", "Muay Thai Medley"],
     color: "from-blue-900 to-black",
     record: "30 Wins, 1 Loss",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/5/52/Gaolang_Wongsawat_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b143861-2X70Iq8Uo7js.jpg"
   },
   {
     id: 3,
@@ -36,7 +36,7 @@ const fighters = [
     techniques: ["The Zone", "Triangle Choke", "Python Hold"],
     color: "from-yellow-900 to-black",
     record: "24 Wins, 1 Loss",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/e/e6/Cosmo_Imai_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b137447-wKRjmEss598q.png"
   },
   {
     id: 4,
@@ -48,7 +48,7 @@ const fighters = [
     techniques: ["Dragon Shot", "Evolution", "Formless Soul"],
     color: "from-purple-900 to-black",
     record: "158 Wins, 1 Loss",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/8/8b/Agito_Kanoh_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b169178-vqrzdtSCfU4d.png"
   },
   {
     id: 5,
@@ -60,7 +60,7 @@ const fighters = [
     techniques: ["Blast Core", "Low Kick", "Grappling (Amateur)"],
     color: "from-orange-900 to-black",
     record: "306 Wins, 3 Losses",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/3/30/Takeshi_Wakatsuki_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b143859-rMvR9SoGLKXf.jpg"
   },
   {
     id: 6,
@@ -72,7 +72,7 @@ const fighters = [
     techniques: ["Removal", "Lions Bite", "Hard Slam"],
     color: "from-pink-900 to-black",
     record: "Unlisted",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/a/ae/Raian_Kure_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b143862-QxhyYjAR5niI.jpg"
   },
   {
     id: 7,
@@ -84,7 +84,7 @@ const fighters = [
     techniques: ["Gott-töter Steinbohrer", "Muscle Control"],
     color: "from-slate-800 to-black",
     record: "51 Wins, 1 Loss",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/0/0e/Julius_Reinhold_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b143847-j0Um0Mp6I4Ub.png"
   },
   {
     id: 8,
@@ -96,7 +96,7 @@ const fighters = [
     techniques: ["Devil Lance", "Pre-initiative", "Sanchin"],
     color: "from-emerald-900 to-black",
     record: "Undefeated",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/3/36/Kuroki_Gensai_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b188642-kvnMhyaa5WiR.png"
   },
   {
     id: 9,
@@ -108,7 +108,7 @@ const fighters = [
     techniques: ["Rakshasa's Palm", "Blink", "Fallen Demon"],
     color: "from-indigo-900 to-black",
     record: "Unlisted",
-    image: "https://static.wikia.nocookie.net/kenganashura/images/2/25/Setsuna_Kiryu_Anime.png"
+    image: "https://s4.anilist.co/file/anilistcdn/character/large/b143840-EkPIPAEeTv8b.jpg"
   }
 ];
 
