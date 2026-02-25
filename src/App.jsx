@@ -11,7 +11,8 @@ const fighters = [
     stats: { striking: 90, grappling: 85, power: 88, speed: 92, endurance: 95 },
     techniques: ["Demonsbane", "Advance", "Ironbreaker"],
     color: "from-red-900 to-black",
-    record: "72 Wins, 2 Losses"
+    record: "72 Wins, 2 Losses",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/b/b5/Ohma_Tokita_Anime.png"
   },
   {
     id: 2,
@@ -22,7 +23,8 @@ const fighters = [
     stats: { striking: 99, grappling: 40, power: 85, speed: 98, endurance: 88 },
     techniques: ["Flash", "God Glow", "Muay Thai Medley"],
     color: "from-blue-900 to-black",
-    record: "30 Wins, 1 Loss"
+    record: "30 Wins, 1 Loss",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/5/52/Gaolang_Wongsawat_Anime.png"
   },
   {
     id: 3,
@@ -33,7 +35,8 @@ const fighters = [
     stats: { striking: 70, grappling: 98, power: 65, speed: 94, endurance: 85 },
     techniques: ["The Zone", "Triangle Choke", "Python Hold"],
     color: "from-yellow-900 to-black",
-    record: "24 Wins, 1 Loss"
+    record: "24 Wins, 1 Loss",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/e/e6/Cosmo_Imai_Anime.png"
   },
   {
     id: 4,
@@ -44,7 +47,8 @@ const fighters = [
     stats: { striking: 95, grappling: 95, power: 94, speed: 90, endurance: 96 },
     techniques: ["Dragon Shot", "Evolution", "Formless Soul"],
     color: "from-purple-900 to-black",
-    record: "158 Wins, 1 Loss"
+    record: "158 Wins, 1 Loss",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/8/8b/Agito_Kanoh_Anime.png"
   },
   {
     id: 5,
@@ -55,7 +59,8 @@ const fighters = [
     stats: { striking: 88, grappling: 75, power: 100, speed: 82, endurance: 99 },
     techniques: ["Blast Core", "Low Kick", "Grappling (Amateur)"],
     color: "from-orange-900 to-black",
-    record: "306 Wins, 3 Losses"
+    record: "306 Wins, 3 Losses",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/3/30/Takeshi_Wakatsuki_Anime.png"
   },
   {
     id: 6,
@@ -66,7 +71,8 @@ const fighters = [
     stats: { striking: 92, grappling: 88, power: 96, speed: 94, endurance: 98 },
     techniques: ["Removal", "Lions Bite", "Hard Slam"],
     color: "from-pink-900 to-black",
-    record: "Unlisted"
+    record: "Unlisted",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/a/ae/Raian_Kure_Anime.png"
   },
   {
     id: 7,
@@ -77,7 +83,8 @@ const fighters = [
     stats: { striking: 80, grappling: 60, power: 100, speed: 75, endurance: 100 },
     techniques: ["Gott-töter Steinbohrer", "Muscle Control"],
     color: "from-slate-800 to-black",
-    record: "51 Wins, 1 Loss"
+    record: "51 Wins, 1 Loss",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/0/0e/Julius_Reinhold_Anime.png"
   },
   {
     id: 8,
@@ -88,7 +95,8 @@ const fighters = [
     stats: { striking: 100, grappling: 80, power: 92, speed: 88, endurance: 100 },
     techniques: ["Devil Lance", "Pre-initiative", "Sanchin"],
     color: "from-emerald-900 to-black",
-    record: "Undefeated"
+    record: "Undefeated",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/3/36/Kuroki_Gensai_Anime.png"
   },
   {
     id: 9,
@@ -99,7 +107,8 @@ const fighters = [
     stats: { striking: 88, grappling: 85, power: 80, speed: 99, endurance: 85 },
     techniques: ["Rakshasa's Palm", "Blink", "Fallen Demon"],
     color: "from-indigo-900 to-black",
-    record: "Unlisted"
+    record: "Unlisted",
+    image: "https://static.wikia.nocookie.net/kenganashura/images/2/25/Setsuna_Kiryu_Anime.png"
   }
 ];
 
@@ -135,59 +144,76 @@ const FighterCard = ({ fighter, onSelect, isSelected }) => (
     whileHover={{ y: -5 }}
     className={`relative group bg-gradient-to-br ${fighter.color} p-0.5 rounded-lg overflow-hidden transition-all duration-500 kengan-glow h-full ${isSelected ? 'ring-2 ring-kengan-gold shadow-[0_0_30px_rgba(212,175,55,0.4)]' : ''}`}
   >
-    <div className="bg-kengan-card p-6 rounded-lg h-full flex flex-col justify-between">
-      <div>
-        <div className="mb-6">
-          <div className="flex justify-between items-start">
-            <span className="text-kengan-gold text-[10px] uppercase tracking-[0.2em] font-black block mb-2 opacity-80">
-              {fighter.style}
-            </span>
-            <span className="text-gray-600 text-[9px] font-bold uppercase tracking-widest">
-              {fighter.record}
-            </span>
-          </div>
-          <h2 className="text-3xl font-black italic uppercase tracking-tighter leading-tight text-white mb-1">
-            {fighter.name}
-          </h2>
-          <p className="text-red-600 text-[11px] italic font-black uppercase tracking-widest">
-            "{fighter.title}"
-          </p>
-        </div>
-
-        <div className="space-y-3 mb-8">
-          <StatBar label="Striking" value={fighter.stats.striking} />
-          <StatBar label="Grappling" value={fighter.stats.grappling} />
-          <StatBar label="Power" value={fighter.stats.power} />
-          <StatBar label="Speed" value={fighter.stats.speed} />
-          <StatBar label="Endurance" value={fighter.stats.endurance} />
+    <div className="bg-kengan-card rounded-lg h-full flex flex-col">
+      {/* Fighter Image Container */}
+      <div className="relative h-64 overflow-hidden rounded-t-lg bg-black">
+        <motion.img 
+          src={fighter.image} 
+          alt={fighter.name}
+          className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+          onError={(e) => {
+            e.target.src = "https://via.placeholder.com/400x600/000000/d4af37?text=REDACTED+DATA";
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-kengan-card via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full p-4">
+           <span className="text-kengan-gold text-[10px] uppercase tracking-[0.2em] font-black block opacity-80">
+            {fighter.style}
+          </span>
         </div>
       </div>
 
-      <div>
-        <h3 className="text-[10px] font-black text-gray-500 mb-3 uppercase tracking-[0.2em]">Secret Techniques</h3>
-        <div className="flex flex-wrap gap-2 mb-6">
-          {fighter.techniques.map(t => (
-            <span key={t} className="bg-black/40 text-white text-[9px] px-3 py-1.5 rounded-sm border border-gray-800 font-bold uppercase tracking-tighter hover:border-kengan-gold hover:text-kengan-gold transition-all duration-300">
-              {t}
-            </span>
-          ))}
+      <div className="p-6 flex-grow flex flex-col justify-between">
+        <div>
+          <div className="mb-6">
+            <div className="flex justify-between items-start">
+              <h2 className="text-3xl font-black italic uppercase tracking-tighter leading-tight text-white mb-1">
+                {fighter.name}
+              </h2>
+              <span className="text-gray-600 text-[9px] font-bold uppercase tracking-widest mt-2">
+                {fighter.record}
+              </span>
+            </div>
+            <p className="text-red-600 text-[11px] italic font-black uppercase tracking-widest">
+              "{fighter.title}"
+            </p>
+          </div>
+
+          <div className="space-y-3 mb-8">
+            <StatBar label="Striking" value={fighter.stats.striking} />
+            <StatBar label="Grappling" value={fighter.stats.grappling} />
+            <StatBar label="Power" value={fighter.stats.power} />
+            <StatBar label="Speed" value={fighter.stats.speed} />
+            <StatBar label="Endurance" value={fighter.stats.endurance} />
+          </div>
         </div>
-        
-        <button 
-          onClick={() => onSelect(fighter)}
-          className={`w-full py-2 text-[10px] font-black tracking-widest border transition-all duration-300 ${
-            isSelected 
-              ? 'bg-kengan-gold text-black border-kengan-gold' 
-              : 'border-gray-800 text-gray-500 hover:border-kengan-gold hover:text-white'
-          }`}
-        >
-          {isSelected ? 'SELECTED' : 'SELECT FOR VS'}
-        </button>
+
+        <div>
+          <h3 className="text-[10px] font-black text-gray-500 mb-3 uppercase tracking-[0.2em]">Secret Techniques</h3>
+          <div className="flex flex-wrap gap-2 mb-6">
+            {fighter.techniques.map(t => (
+              <span key={t} className="bg-black/40 text-white text-[9px] px-3 py-1.5 rounded-sm border border-gray-800 font-bold uppercase tracking-tighter hover:border-kengan-gold hover:text-kengan-gold transition-all duration-300">
+                {t}
+              </span>
+            ))}
+          </div>
+          
+          <button 
+            onClick={() => onSelect(fighter)}
+            className={`w-full py-2 text-[10px] font-black tracking-widest border transition-all duration-300 ${
+              isSelected 
+                ? 'bg-kengan-gold text-black border-kengan-gold' 
+                : 'border-gray-800 text-gray-500 hover:border-kengan-gold hover:text-white'
+            }`}
+          >
+            {isSelected ? 'SELECTED' : 'SELECT FOR VS'}
+          </button>
+        </div>
       </div>
     </div>
     
-    <div className="absolute bottom-16 right-4 opacity-5 pointer-events-none">
-      <div className="text-6xl font-black italic">#{fighter.id}</div>
+    <div className="absolute top-4 right-4 opacity-10 pointer-events-none z-20">
+      <div className="text-4xl font-black italic">#{fighter.id}</div>
     </div>
   </motion.div>
 );
@@ -223,8 +249,13 @@ const ComparisonOverlay = ({ selectedFighters, onClose }) => {
           <motion.div 
             initial={{ x: -100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            className="text-right z-10"
+            className="text-right z-10 flex flex-col items-end"
           >
+            <div className="relative w-full h-64 mb-8 overflow-hidden rounded-xl border border-gray-800">
+               <img src={f1.image} alt={f1.name} className="w-full h-full object-cover object-top opacity-60" />
+               <div className="absolute inset-0 bg-gradient-to-l from-kengan-dark to-transparent" />
+            </div>
+            
             <h3 className="text-kengan-gold text-xs font-black uppercase tracking-widest mb-2 opacity-60">{f1.style}</h3>
             <h2 className="text-4xl md:text-7xl font-black italic uppercase leading-[0.8] mb-4 text-white drop-shadow-2xl">
               {f1.name.split(' ')[0]}<br/>
@@ -232,7 +263,7 @@ const ComparisonOverlay = ({ selectedFighters, onClose }) => {
             </h2>
             <p className="text-gray-500 text-sm italic mb-8 font-bold">"{f1.title}"</p>
             
-            <div className="space-y-6 mt-12">
+            <div className="space-y-6 mt-4 w-full">
               {Object.entries(f1.stats).map(([key, val]) => (
                 <div key={key}>
                   <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">{key}</div>
@@ -256,7 +287,7 @@ const ComparisonOverlay = ({ selectedFighters, onClose }) => {
                 <circle cx="50" cy="50" r="15" />
                 <path d="M50 5 L50 95 M5 50 L95 50" />
               </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-gray-700 tracking-[0.5em] uppercase">Matrix Analytics</div>
+              <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-gray-700 tracking-[0.5em] uppercase text-center px-4">Biometric Comparison</div>
             </div>
 
             <div className="mt-12 text-center">
@@ -270,8 +301,13 @@ const ComparisonOverlay = ({ selectedFighters, onClose }) => {
           <motion.div 
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            className="text-left z-10"
+            className="text-left z-10 flex flex-col items-start"
           >
+            <div className="relative w-full h-64 mb-8 overflow-hidden rounded-xl border border-gray-800">
+               <img src={f2.image} alt={f2.name} className="w-full h-full object-cover object-top opacity-60" />
+               <div className="absolute inset-0 bg-gradient-to-r from-kengan-dark to-transparent" />
+            </div>
+
             <h3 className="text-kengan-gold text-xs font-black uppercase tracking-widest mb-2 opacity-60">{f2.style}</h3>
             <h2 className="text-4xl md:text-7xl font-black italic uppercase leading-[0.8] mb-4 text-white drop-shadow-2xl">
               {f2.name.split(' ')[0]}<br/>
@@ -279,7 +315,7 @@ const ComparisonOverlay = ({ selectedFighters, onClose }) => {
             </h2>
             <p className="text-gray-500 text-sm italic mb-8 font-bold">"{f2.title}"</p>
             
-            <div className="space-y-6 mt-12">
+            <div className="space-y-6 mt-4 w-full">
               {Object.entries(f2.stats).map(([key, val]) => (
                 <div key={key}>
                   <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">{key}</div>
@@ -370,12 +406,13 @@ export default function App() {
         >
           <div className="flex -space-x-4">
             {selectedFighters.map(f => (
-              <div key={f.id} className={`w-12 h-12 rounded-full border-2 border-kengan-gold bg-gradient-to-br ${f.color} flex items-center justify-center font-black italic text-xs`}>
-                {f.name.charAt(0)}
+              <div key={f.id} className={`w-14 h-14 rounded-full border-2 border-kengan-gold bg-black overflow-hidden relative group`}>
+                <img src={f.image} alt={f.name} className="w-full h-full object-cover object-top" />
+                <div className={`absolute inset-0 bg-gradient-to-br ${f.color} opacity-40`} />
               </div>
             ))}
             {selectedFighters.length === 1 && (
-              <div className="w-12 h-12 rounded-full border-2 border-dashed border-gray-600 flex items-center justify-center text-gray-600 font-bold text-xs">
+              <div className="w-14 h-14 rounded-full border-2 border-dashed border-gray-600 flex items-center justify-center text-gray-600 font-black text-xs bg-black/50">
                 VS
               </div>
             )}
