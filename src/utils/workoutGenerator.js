@@ -1,4 +1,6 @@
-import { exerciseDatabase, workoutStyles, filterExercises } from '../data/workouts.js';
+import { workoutStyles, filterExercises } from '../data/workouts.js';
+import { comboDatabase, getComboForWeek, combatStyles, getCombosForStyle, getRoundsForTime } from '../data/combos.js';
+import { gymExerciseDatabase, getExercisesByType } from '../data/gymExercises.js';
 
 /**
  * Generate a personalized weekly workout plan based on user profile and matched fighter
@@ -10,17 +12,52 @@ export const generateWorkoutPlan = (userProfile, matchedFighter) => {
   const fighter = matchedFighter.fighter;
   const workoutStyle = workoutStyles[fighter.workoutStyle];
   
-  // Get available exercises based on user preferences and equipment
   const availableExercises = filterExercises(
     userProfile.equipment, 
     userProfile.exercisePreferences,
     userProfile.experience
   );
 
-  // Filter exercises that match the fighter's style
   const styleExercises = availableExercises.filter(exercise => 
     exercise.kenganStyle && exercise.kenganStyle.includes(fighter.workoutStyle)
   );
+
+  const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const trainingDaysConfig = userProfile.trainingDays?.days || [];
+  const sessionLength = userProfile.timeAvailable.sessionLength || 45;
+  
+  const weeklyStructure = generateWeeklyStructure(workoutStyle, userProfile);
+  const dailyWorkouts = {};
+  
+  for (let i = 0; i < trainingDaysConfig.length; i++) {
+    const dayConfig = trainingDaysConfig[i];
+    const dayName = dayNames[i] || `day${i+1}`;
+    const combatTypes = dayConfig.combatTypes || [];
+    const hasCombat = combatTypes.length > 0;
+    const hasGym = dayConfig.type && dayConfig.type !== 'rest';
+    
+    const gymExercises = hasGym ? generateGymExercises(dayConfig, userProfile) : [];
+    const combatRounds = hasCombat ? generateCombatRounds(combatTypes, sessionLength, fighter.workoutStyle, i) : null;
+    
+    dailyWorkouts[dayName] = {
+      dayConfig: {
+        type: dayConfig.type,
+        focus: dayConfig.focus,
+        location: dayConfig.location,
+        combatTypes: combatTypes
+      },
+      focusArea: hasGym ? getFocusForDayType(dayConfig.type) : 'combat',
+      warmUp: generateWarmUp(hasGym ? getFocusForDayType(dayConfig.type) : 'striking'),
+      gymExercises: gymExercises,
+      combatRounds: combatRounds,
+      coolDown: generateCoolDown(hasGym ? getFocusForDayType(dayConfig.type) : 'striking'),
+      totalEstimatedTime: sessionLength,
+      intensity: getIntensityForDay(i, workoutStyle.weeklyStructure.intensity),
+      notes: getDailyNotes(hasGym ? getFocusForDayType(dayConfig.type) : 'striking', workoutStyle),
+      isCombat: hasCombat,
+      isGym: hasGym
+    };
+  }
 
   const plan = {
     fighterInfo: {
@@ -29,14 +66,94 @@ export const generateWorkoutPlan = (userProfile, matchedFighter) => {
       workoutStyle: workoutStyle.name,
       philosophy: workoutStyle.philosophy
     },
-    weeklyStructure: generateWeeklyStructure(workoutStyle, userProfile),
-    dailyWorkouts: generateDailyWorkouts(workoutStyle, styleExercises, availableExercises, userProfile),
+    weeklyStructure,
+    dailyWorkouts,
     progressionTips: getProgressionTips(fighter, userProfile),
     safetyConsiderations: getSafetyConsiderations(userProfile),
-    estimatedDuration: calculateWeeklyDuration(workoutStyle, userProfile.timeAvailable)
+    estimatedDuration: {
+      totalWeeklyMinutes: trainingDaysConfig.length * sessionLength,
+      averageSessionLength: sessionLength,
+      workoutDays: trainingDaysConfig.length,
+      estimatedIntensity: workoutStyle.weeklyStructure.intensity
+    },
+    comboProgress: getComboProgress(fighter.workoutStyle),
+    preferredArts: userProfile.preferredArts || []
   };
 
   return plan;
+};
+
+const generateGymExercises = (dayConfig, userProfile) => {
+  const exerciseType = dayConfig.type || 'full';
+  const exercises = getExercisesByType(exerciseType);
+  const userInjuries = userProfile.injuries || [];
+  
+  return exercises.map(ex => {
+    const hasInjuryConflict = userInjuries.some(injury => {
+      const affectedMuscles = {
+        knee: ['cuádriceps', 'piernas'],
+        back: ['espalda', 'core'],
+        shoulder: ['hombros', 'pecho'],
+        wrist: ['bíceps', 'tríceps']
+      };
+      return affectedMuscles[injury]?.some(m => ex.muscles.includes(m));
+    });
+    
+    return {
+      ...ex,
+      weight: ex.weightRange ? `${ex.weightRange.min}-${ex.weightRange.max} ${ex.weightRange.unit}` : ' bodyweight',
+      hasSubstitution: hasInjuryConflict,
+      substitution: hasInjuryConflict ? ex.substitutions[0] : null
+    };
+  }).slice(0, 6);
+};
+
+const generateCombatRounds = (combatTypes, sessionLength, fighterStyle, dayIndex) => {
+  const totalMinutes = sessionLength;
+  const roundMinutes = 3;
+  const restMinutes = 1;
+  const roundWithRest = roundMinutes + restMinutes;
+  
+  const numRounds = Math.max(2, Math.min(Math.floor((totalMinutes * 0.6) / roundWithRest), 5));
+  const combosPerRound = 3;
+  
+  const allCombos = getCombosForStyle(combatTypes);
+  const shortCombos = allCombos.short || [];
+  const longCombos = allCombos.long || [];
+  
+  const rounds = [];
+  for (let r = 0; r < numRounds; r++) {
+    const isLastRound = r === numRounds - 1;
+    const roundCombos = [];
+    
+    if (r === 0) {
+      roundCombos.push({ name: "Shadow Boxing", description: "Warm-up", type: "warmup" });
+    } else if (isLastRound) {
+      roundCombos.push({ name: "Cool-down", description: "Light movement", type: "cooldown" });
+    } else {
+      const comboIndex = (r - 1) % Math.min(combosPerRound, shortCombos.length);
+      roundCombos.push(shortCombos[comboIndex] || shortCombos[0]);
+      if (longCombos.length > 0) {
+        const longIndex = Math.floor((r - 1) / 2) % longCombos.length;
+        roundCombos.push(longCombos[longIndex]);
+      }
+    }
+    
+    rounds.push({
+      round: r + 1,
+      duration: r === 0 || isLastRound ? 3 : roundMinutes,
+      combos: roundCombos
+    });
+  }
+  
+  return {
+    numRounds,
+    roundLength: roundMinutes,
+    restBetweenRounds: restMinutes,
+    totalCombatTime: numRounds * roundMinutes,
+    rounds,
+    styles: combatTypes.map(t => combatStyles[t]?.name || t).join(' + ')
+  };
 };
 
 const generateWeeklyStructure = (workoutStyle, userProfile) => {
@@ -70,33 +187,22 @@ const generateWeeklyStructure = (workoutStyle, userProfile) => {
   return baseStructure;
 };
 
-const generateDailyWorkouts = (workoutStyle, styleExercises, allExercises, userProfile) => {
-  const dailyWorkouts = {};
-  const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-  const sessionLength = userProfile.timeAvailable.sessionLength;
-  
-  for (let day = 0; day < userProfile.timeAvailable.daysPerWeek; day++) {
-    const dayName = dayNames[day];
-    const focusArea = getFocusForDay(day, workoutStyle);
-    
-    dailyWorkouts[dayName] = {
-      focusArea,
-      warmUp: generateWarmUp(focusArea),
-      mainWorkout: generateMainWorkout(focusArea, styleExercises, allExercises, sessionLength, userProfile),
-      coolDown: generateCoolDown(focusArea),
-      totalEstimatedTime: sessionLength,
-      intensity: getIntensityForDay(day, workoutStyle.weeklyStructure.intensity),
-      notes: getDailyNotes(focusArea, workoutStyle)
-    };
-  }
-
-  return dailyWorkouts;
-};
-
 const getFocusForDay = (dayIndex, workoutStyle) => {
   const ratio = workoutStyle.weeklyStructure.balanceRatio;
   const focuses = Object.keys(ratio);
   return focuses[dayIndex % focuses.length];
+};
+
+const getFocusForDayType = (dayType) => {
+  const typeMap = {
+    push: 'strength',
+    pull: 'strength',
+    legs: 'strength',
+    upper: 'striking',
+    lower: 'strength',
+    full: 'conditioning'
+  };
+  return typeMap[dayType] || 'conditioning';
 };
 
 const generateWarmUp = (focusArea) => {
@@ -323,5 +429,44 @@ const calculateWeeklyDuration = (workoutStyle, timeAvailable) => {
     averageSessionLength: timeAvailable.sessionLength,
     workoutDays: timeAvailable.daysPerWeek,
     estimatedIntensity: workoutStyle.weeklyStructure.intensity
+  };
+};
+
+const generateCombosForDay = (workoutStyle, userProfile, dayIndex) => {
+  const currentWeek = Math.floor(dayIndex / 3) + 1;
+  const combos = getComboForWeek(workoutStyle, currentWeek);
+  
+  if (!combos || combos.length === 0) {
+    return {
+      available: [],
+      newUnlocks: [],
+      message: "Practice your fundamentals first"
+    };
+  }
+
+  const previousWeekCombos = getComboForWeek(workoutStyle, currentWeek - 1);
+  const previousComboIds = new Set(previousWeekCombos?.map(c => c.id) || []);
+  const newUnlocks = combos.filter(c => !previousComboIds.has(c.id));
+
+  return {
+    available: combos.slice(0, 4),
+    newUnlocks: newUnlocks.slice(0, 2),
+    week: currentWeek,
+    message: currentWeek === 1 
+      ? "Master these basics before advancing" 
+      : `Week ${currentWeek} - Keep building your arsenal!`
+  };
+};
+
+const getComboProgress = (workoutStyle) => {
+  const style = comboDatabase[workoutStyle];
+  if (!style) return null;
+
+  return {
+    styleName: style.name,
+    baseStyles: style.baseStyles,
+    totalCombos: style.combos.length,
+    progression: style.progression,
+    allCombos: style.combos
   };
 };

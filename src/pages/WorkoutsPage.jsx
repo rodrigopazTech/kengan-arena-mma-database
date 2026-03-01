@@ -134,7 +134,7 @@ const LandingView = ({ onStartAssessment }) => {
         </p>
         
         <div className="flex flex-wrap justify-center gap-4 mb-8">
-          {['Physical Stats', 'Experience & Goals', 'Equipment & Preferences', 'Schedule & Health'].map((step, index) => (
+          {['Physical Stats', 'Experience & Goals', 'Equipment & Preferences', 'Training Schedule', 'Schedule & Health'].map((step, index) => (
             <div 
               key={step}
               className="bg-black/30 border border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-300"

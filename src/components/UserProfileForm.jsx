@@ -1,5 +1,37 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { artStyles, combatStyles } from '../data/combos.js';
+
+const workoutStructures = {
+  1: { name: "Full Body", days: [{ type: "full", focus: "gym", location: "gym", combatTypes: [] }] },
+  2: { name: "Full Body x2", days: [{ type: "full", focus: "gym", location: "gym", combatTypes: [] }, { type: "full", focus: "gym", location: "gym", combatTypes: [] }] },
+  3: { name: "Upper / Lower / Full Body", days: [
+    { type: "upper", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "lower", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "full", focus: "gym", location: "gym", combatTypes: [] }
+  ]},
+  4: { name: "Upper / Lower / Upper / Lower", days: [
+    { type: "upper", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "lower", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "upper", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "lower", focus: "gym", location: "gym", combatTypes: [] }
+  ]},
+  5: { name: "Upper / Lower / Full / Upper / Lower", days: [
+    { type: "upper", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "lower", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "full", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "upper", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "lower", focus: "gym", location: "gym", combatTypes: [] }
+  ]},
+  6: { name: "Push / Pull / Legs / Upper / Lower / Full", days: [
+    { type: "push", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "pull", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "legs", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "upper", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "lower", focus: "gym", location: "gym", combatTypes: [] },
+    { type: "full", focus: "gym", location: "gym", combatTypes: [] }
+  ]}
+};
 
 const UserProfileForm = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -12,6 +44,15 @@ const UserProfileForm = ({ onComplete }) => {
     goals: [],
     exercisePreferences: [],
     equipment: '',
+    preferredArts: [],
+    trainingDays: {
+      structure: 3,
+      days: [
+        { day: 0, type: 'upper', focus: 'both', location: 'gym' },
+        { day: 1, type: 'lower', focus: 'both', location: 'gym' },
+        { day: 2, type: 'full', focus: 'both', location: 'gym' }
+      ]
+    },
     timeAvailable: {
       daysPerWeek: 3,
       sessionLength: 45
@@ -34,6 +75,11 @@ const UserProfileForm = ({ onComplete }) => {
       title: "Preferences & Equipment",
       subtitle: "What's your training style preference?",
       fields: ['exercisePreferences', 'equipment']
+    },
+    {
+      title: "Training Schedule",
+      subtitle: "Configure your weekly training days",
+      fields: ['trainingDays', 'preferredArts']
     },
     {
       title: "Schedule & Health",
@@ -86,14 +132,17 @@ const UserProfileForm = ({ onComplete }) => {
   const isStepValid = () => {
     const currentFields = steps[currentStep].fields;
     return currentFields.every(field => {
-      if (field === 'goals' || field === 'exercisePreferences') {
-        return formData[field].length > 0;
+      if (field === 'goals' || field === 'exercisePreferences' || field === 'preferredArts') {
+        return formData[field] && formData[field].length > 0;
+      }
+      if (field === 'trainingDays') {
+        return formData.trainingDays && formData.trainingDays.structure > 0;
       }
       if (field === 'timeAvailable') {
         return formData.timeAvailable.daysPerWeek && formData.timeAvailable.sessionLength;
       }
       if (field === 'injuries') {
-        return true; // Optional field
+        return true;
       }
       return formData[field] && formData[field] !== '';
     });
@@ -108,6 +157,8 @@ const UserProfileForm = ({ onComplete }) => {
       case 2:
         return <PreferencesEquipmentStep formData={formData} onMultiSelect={handleMultiSelect} onChange={handleInputChange} />;
       case 3:
+        return <TrainingScheduleStep formData={formData} onChange={handleInputChange} onMultiSelect={handleMultiSelect} />;
+      case 4:
         return <ScheduleHealthStep formData={formData} onChange={handleInputChange} onMultiSelect={handleMultiSelect} />;
       default:
         return null;
@@ -358,6 +409,219 @@ const PreferencesEquipmentStep = ({ formData, onMultiSelect, onChange }) => (
     </div>
   </div>
 );
+
+const TrainingScheduleStep = ({ formData, onChange, onMultiSelect }) => {
+  const gymTypes = [
+    { value: 'upper', label: 'Upper' },
+    { value: 'lower', label: 'Lower' },
+    { value: 'full', label: 'Full Body' },
+    { value: 'push', label: 'Push' },
+    { value: 'pull', label: 'Pull' },
+    { value: 'legs', label: 'Legs' },
+    { value: 'mixed', label: 'Mixto' }
+  ];
+  
+  const combatTypeOptions = Object.values(combatStyles).map(style => ({
+    value: style.id,
+    label: `${style.icon} ${style.name}`
+  }));
+  
+  const locationTypes = [
+    { value: 'home', label: '🏠 Casa' },
+    { value: 'gym', label: '🏋️ Gym' }
+  ];
+
+  const typeLabels = {
+    push: 'Push', pull: 'Pull', legs: 'Legs', upper: 'Upper', lower: 'Lower', full: 'Full Body', mixed: 'Mixto'
+  };
+
+  const handleStructureChange = (structure) => {
+    const newStructure = workoutStructures[structure];
+    const newDays = newStructure.days.map((d, idx) => ({
+      day: idx,
+      type: d.type,
+      focus: 'gym',
+      location: formData.trainingDays.days[idx]?.location || 'gym',
+      combatTypes: formData.trainingDays.days[idx]?.combatTypes || []
+    }));
+    onChange('trainingDays', { structure: parseInt(structure), days: newDays });
+  };
+
+  const handleDayChange = (dayIndex, field, value) => {
+    const newDays = [...formData.trainingDays.days];
+    newDays[dayIndex] = { ...newDays[dayIndex], [field]: value };
+    onChange('trainingDays', { ...formData.trainingDays, days: newDays });
+  };
+
+  const toggleCombatType = (dayIndex, combatType) => {
+    const newDays = [...formData.trainingDays.days];
+    const currentTypes = newDays[dayIndex].combatTypes || [];
+    if (currentTypes.includes(combatType)) {
+      newDays[dayIndex].combatTypes = currentTypes.filter(t => t !== combatType);
+    } else {
+      newDays[dayIndex].combatTypes = [...currentTypes, combatType];
+    }
+    onChange('trainingDays', { ...formData.trainingDays, days: newDays });
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Training Days Selection */}
+      <div>
+        <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">
+          Training Days per Week
+        </label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[1, 2, 3, 4, 5, 6, 7].map(num => (
+            <button
+              key={num}
+              onClick={() => {
+                const newDays = workoutStructures[num]?.days || [];
+                const updatedDays = newDays.map((d, idx) => ({
+                  day: idx,
+                  type: d.type,
+                  focus: 'gym',
+                  location: formData.trainingDays.days[idx]?.location || 'gym',
+                  combatTypes: formData.trainingDays.days[idx]?.combatTypes || []
+                }));
+                onChange('trainingDays', { structure: num, days: updatedDays });
+              }}
+              className={`p-3 rounded border-2 transition-all duration-300 text-sm font-bold ${
+                formData.trainingDays.structure === num
+                  ? 'border-kengan-gold bg-kengan-gold/20 text-kengan-gold'
+                  : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {num} {num === 1 ? 'day' : 'days'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Configure Each Day */}
+      <div>
+        <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">
+          Configure Each Day (click to edit)
+        </label>
+        <div className="space-y-4">
+          {formData.trainingDays.days.map((day, idx) => (
+            <div key={idx} className="bg-black/40 border border-gray-700 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="text-white font-bold uppercase text-lg">
+                    Day {idx + 1}
+                  </span>
+                  <span className="text-kengan-gold ml-2 font-bold">
+                    ({typeLabels[day.type] || day.type})
+                  </span>
+                </div>
+                <span className={`text-xs px-3 py-1 rounded font-bold ${
+                  day.location === 'home' ? 'bg-green-900 text-green-300' : 'bg-blue-900 text-blue-300'
+                }`}>
+                  {day.location === 'home' ? '🏠 Casa' : '🏋️ Gym'}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Gym Type */}
+                <div>
+                  <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Gym Type</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {gymTypes.map(g => (
+                      <button
+                        key={g.value}
+                        onClick={() => handleDayChange(idx, 'type', g.value)}
+                        className={`text-xs px-2 py-2 rounded transition-all font-bold ${
+                          day.type === g.value
+                            ? 'bg-kengan-gold text-black'
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                        }`}
+                      >
+                        {g.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Combat Types */}
+                <div>
+                  <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Combat Types</label>
+                  <div className="grid grid-cols-2 gap-1">
+                    {combatTypeOptions.slice(0, 6).map(ct => (
+                      <button
+                        key={ct.value}
+                        onClick={() => toggleCombatType(idx, ct.value)}
+                        className={`text-[10px] px-1 py-1 rounded transition-all ${
+                          (day.combatTypes || []).includes(ct.value)
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                        }`}
+                      >
+                        {ct.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div>
+                  <label className="text-xs text-gray-500 mb-2 block uppercase tracking-wider">Location</label>
+                  <div className="flex gap-2">
+                    {locationTypes.map(l => (
+                      <button
+                        key={l.value}
+                        onClick={() => handleDayChange(idx, 'location', l.value)}
+                        className={`flex-1 text-xs px-3 py-2 rounded transition-all font-bold ${
+                          day.location === l.value
+                            ? 'bg-kengan-red text-white'
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                        }`}
+                      >
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Combat Types Selected Display */}
+              {(day.combatTypes || []).length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <span className="text-xs text-purple-400 font-bold">
+                    Combat: {(day.combatTypes || []).map(t => combatStyles[t]?.icon + combatStyles[t]?.name).join(' + ')}
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Preferred Arts */}
+      <div>
+        <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">
+          Preferred Martial Arts (Optional)
+        </label>
+        <p className="text-xs text-gray-500 mb-3">Select arts you'd like to focus on</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {artStyles.map(art => (
+            <button
+              key={art.id}
+              onClick={() => onMultiSelect('preferredArts', art.id)}
+              className={`p-2 rounded border transition-all duration-300 text-xs font-bold ${
+                formData.preferredArts.includes(art.id)
+                  ? 'border-kengan-gold bg-kengan-gold/20 text-kengan-gold'
+                  : 'border-gray-700 text-gray-400 hover:border-gray-500'
+              }`}
+            >
+              {art.icon} {art.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ScheduleHealthStep = ({ formData, onChange, onMultiSelect }) => (
   <div className="space-y-8">
