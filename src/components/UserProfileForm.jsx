@@ -100,7 +100,18 @@ const UserProfileForm = ({ onComplete }) => {
       if (field === 'primaryAttributes') return formData.primaryAttributes?.length > 0;
       if (field === 'gymExperience' || field === 'combatExperience') return formData[field] && formData[field] !== '';
       if (field === 'goals' || field === 'exercisePreferences' || field === 'preferredArts') return formData[field]?.length > 0;
-      if (field === 'trainingDays') return formData.trainingDays?.days?.length > 0;
+      if (field === 'trainingDays') {
+        const days = formData.trainingDays?.days || [];
+        const hasActiveDays = days.some(d => !d.isRest);
+        if (!hasActiveDays) return false;
+        const allValid = days.every(d => {
+          if (d.isRest) return true;
+          const hasGym = d.type && d.type !== '';
+          const hasCombat = d.combatTypes && d.combatTypes.length > 0;
+          return hasGym || hasCombat;
+        });
+        return allValid;
+      }
       if (field === 'timeAvailable') return formData.timeAvailable?.sessionLength > 0;
       if (field === 'injuries') return true;
       return formData[field] && formData[field] !== '';
@@ -335,6 +346,17 @@ const TrainingScheduleStep = ({ formData, onChange, onMultiSelect }) => {
   const typeLabels = { push: 'Push', pull: 'Pull', legs: 'Legs', upper: 'Upper', lower: 'Lower', full: 'Full Body' };
   const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
+  const handleDayTypeChange = (dayIndex, gymType) => {
+    if (!formData.trainingDays?.days) return;
+    const newDays = [...formData.trainingDays.days];
+    newDays[dayIndex] = { 
+      ...newDays[dayIndex], 
+      type: gymType, 
+      focus: 'gym' 
+    };
+    onChange('trainingDays', { days: newDays });
+  };
+
   const handleDayChange = (dayIndex, field, value) => {
     if (!formData.trainingDays?.days) return;
     const newDays = [...formData.trainingDays.days];
@@ -411,8 +433,12 @@ const TrainingScheduleStep = ({ formData, onChange, onMultiSelect }) => {
                   <span className="text-lg font-black text-white">{dayNames[idx]}</span>
                   {day.isRest ? (
                     <span className="bg-green-600/20 text-green-400 text-xs px-2 py-1 rounded font-bold">☀️ Descanso</span>
-                  ) : (
+                  ) : day.type && day.type !== '' ? (
                     <span className="bg-kengan-gold/20 text-kengan-gold text-xs px-2 py-1 rounded font-bold">{typeLabels[day.type]}</span>
+                  ) : day.combatTypes?.length > 0 ? (
+                    <span className="bg-purple-600/20 text-purple-400 text-xs px-2 py-1 rounded font-bold">Solo Combate</span>
+                  ) : (
+                    <span className="bg-red-600/20 text-red-400 text-xs px-2 py-1 rounded font-bold">⚠️ Configurar</span>
                   )}
                 </div>
                 <button onClick={() => toggleRest(idx)} className={`text-xs px-3 py-2 rounded font-bold transition-all ${day.isRest ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}>
@@ -424,12 +450,14 @@ const TrainingScheduleStep = ({ formData, onChange, onMultiSelect }) => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Tipo Gym */}
                   <div className="bg-gray-900/50 rounded-lg p-3">
-                    <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">🏋️ Tipo Gym</label>
+                    <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">
+                      🏋️ Tipo Gym {day.combatTypes?.length > 0 && <span className="text-gray-500">(opcional)</span>}
+                    </label>
                     <div className="grid grid-cols-2 gap-2">
                       {gymTypes.map(g => (
-                        <button key={g.value} onClick={() => { handleDayChange(idx, 'type', g.value); handleDayChange(idx, 'focus', 'gym'); }}
+                        <button key={g.value} onClick={() => handleDayTypeChange(idx, g.value)}
                           className={`text-xs py-3 rounded-lg font-bold transition-all flex flex-col items-center gap-1 ${
-                            day.type === g.value && !day.isRest 
+                            day.type === g.value
                               ? 'bg-kengan-gold text-black shadow-lg ring-2 ring-kengan-gold' 
                               : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
                           }`}>
@@ -437,6 +465,15 @@ const TrainingScheduleStep = ({ formData, onChange, onMultiSelect }) => {
                           <span>{g.label}</span>
                         </button>
                       ))}
+                      <button onClick={() => handleDayTypeChange(idx, '')}
+                        className={`text-xs py-3 rounded-lg font-bold transition-all flex flex-col items-center gap-1 ${
+                          !day.type || day.type === ''
+                            ? 'bg-red-600/50 text-white shadow-lg ring-2 ring-red-500' 
+                            : 'bg-gray-800 text-gray-500 hover:bg-gray-700 border border-gray-700'
+                        }`}>
+                        <span className="text-lg">❌</span>
+                        <span>Sin Gym</span>
+                      </button>
                     </div>
                   </div>
                   
