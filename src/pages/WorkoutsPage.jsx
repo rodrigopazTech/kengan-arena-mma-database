@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import UserProfileForm from '../components/UserProfileForm.jsx';
 import FighterMatchReveal from '../components/FighterMatchReveal.jsx';
+import WarriorProfile from '../components/WarriorProfile.jsx';
 import { findBestMatch } from '../utils/matchAlgorithm.js';
 import { generateWorkoutPlan } from '../utils/workoutGenerator.js';
 
 const WorkoutsPage = () => {
-  const [currentView, setCurrentView] = useState('landing'); // 'landing', 'assessment', 'results'
+  const [currentView, setCurrentView] = useState('landing'); // 'landing', 'assessment', 'results', 'warrior'
   const [userProfile, setUserProfile] = useState(null);
   const [matchResult, setMatchResult] = useState(null);
   const [workoutPlan, setWorkoutPlan] = useState(null);
@@ -26,7 +27,7 @@ const WorkoutsPage = () => {
     const plan = generateWorkoutPlan(profileData, match.bestMatch);
     setWorkoutPlan(plan);
     
-    setCurrentView('results');
+    setCurrentView('warrior');
   };
 
   const handleRestart = () => {
@@ -48,6 +49,18 @@ const WorkoutsPage = () => {
             key="assessment" 
             onComplete={handleAssessmentComplete}
             onBack={() => setCurrentView('landing')}
+          />
+        )}
+
+        {currentView === 'warrior' && userProfile && (
+          <WarriorView 
+            key="warrior"
+            userProfile={userProfile}
+            workoutPlan={workoutPlan}
+            matchResult={matchResult}
+            onBack={() => setCurrentView('assessment')}
+            onViewWorkouts={() => setCurrentView('results')}
+            onRestart={handleRestart}
           />
         )}
 
@@ -274,3 +287,27 @@ const ResultsView = ({ matchResult, workoutPlan, onRestart }) => {
 };
 
 export default WorkoutsPage;
+
+const WarriorView = ({ userProfile, workoutPlan, matchResult, onBack, onViewWorkouts, onRestart }) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-6xl mx-auto">
+    <div className="flex justify-between mb-6">
+      <button onClick={onBack} className="text-gray-400 hover:text-white">← Volver</button>
+      <button onClick={onRestart} className="text-gray-400 hover:text-white text-sm font-bold">Nuevo →</button>
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-1">
+        <WarriorProfile warriorData={userProfile} workoutPlan={workoutPlan} />
+      </div>
+      <div className="lg:col-span-2 space-y-4">
+        <div className="bg-kengan-card border border-gray-800 rounded-xl p-5">
+          <h3 className="text-xl font-black text-white mb-3">📋 Tu Plan</h3>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="bg-black/30 rounded p-3 text-center"><div className="text-xl font-black text-kengan-gold">{workoutPlan?.estimatedDuration?.workoutDays || 3}</div><div className="text-xs text-gray-400">Días/Sem</div></div>
+            <div className="bg-black/30 rounded p-3 text-center"><div className="text-xl font-black text-kengan-gold">{workoutPlan?.estimatedDuration?.averageSessionLength || 45}m</div><div className="text-xs text-gray-400">Por sesión</div></div>
+          </div>
+          <button onClick={onViewWorkouts} className="w-full bg-kengan-red text-white py-3 rounded font-black italic">🏋️ VER RUTINAS</button>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
