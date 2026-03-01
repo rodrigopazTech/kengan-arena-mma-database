@@ -3,14 +3,26 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { artStyles, combatStyles } from '../data/combos.js';
 import { warriorSchools, experienceLevels, attributes, tierSystem, getTierForXp, generateRival } from '../data/warriorSystem.js';
 
-const workoutStructures = {
-  1: { name: "Full Body", days: [{ type: "full", focus: "gym", location: "gym", combatTypes: [] }] },
-  2: { name: "Full Body x2", days: [{ type: "full", focus: "gym", location: "gym", combatTypes: [] }, { type: "full", focus: "gym", location: "gym", combatTypes: [] }] },
-  3: { name: "Upper / Lower / Full Body", days: [{ type: "upper", focus: "gym", location: "gym", combatTypes: [] }, { type: "lower", focus: "gym", location: "gym", combatTypes: [] }, { type: "full", focus: "gym", location: "gym", combatTypes: [] }] },
-  4: { name: "Upper / Lower / Upper / Lower", days: [{ type: "upper", focus: "gym", location: "gym", combatTypes: [] }, { type: "lower", focus: "gym", location: "gym", combatTypes: [] }, { type: "upper", focus: "gym", location: "gym", combatTypes: [] }, { type: "lower", focus: "gym", location: "gym", combatTypes: [] }] },
-  5: { name: "Upper / Lower / Full / Upper / Lower", days: [{ type: "upper", focus: "gym", location: "gym", combatTypes: [] }, { type: "lower", focus: "gym", location: "gym", combatTypes: [] }, { type: "full", focus: "gym", location: "gym", combatTypes: [] }, { type: "upper", focus: "gym", location: "gym", combatTypes: [] }, { type: "lower", focus: "gym", location: "gym", combatTypes: [] }] },
-  6: { name: "Push / Pull / Legs / Upper / Lower / Full", days: [{ type: "push", focus: "gym", location: "gym", combatTypes: [] }, { type: "pull", focus: "gym", location: "gym", combatTypes: [] }, { type: "legs", focus: "gym", location: "gym", combatTypes: [] }, { type: "upper", focus: "gym", location: "gym", combatTypes: [] }, { type: "lower", focus: "gym", location: "gym", combatTypes: [] }, { type: "full", focus: "gym", location: "gym", combatTypes: [] }] }
+const experienceOptions = {
+  gym: [
+    { id: 'beginner', name: 'Principiante', icon: '🔰', desc: 'Sin experiencia en pesas' },
+    { id: 'intermediate', name: 'Intermedio', icon: '⚡', desc: '1-3 años entrenando' },
+    { id: 'advanced', name: 'Avanzado', icon: '💀', desc: '3+ años de experiencia' }
+  ],
+  combat: [
+    { id: 'beginner', name: 'Principiante', icon: '🔰', desc: 'Nunca ha practicado artes marciales' },
+    { id: 'intermediate', name: 'Intermedio', icon: '⚡', desc: 'Ha entrenado 1-3 años' },
+    { id: 'advanced', name: 'Avanzado', icon: '💀', desc: '3+ años de experiencia en combate' }
+  ]
 };
+
+const createEmptyDays = () => Array.from({ length: 7 }, () => ({
+  type: 'full',
+  focus: 'gym',
+  location: 'gym',
+  combatTypes: [],
+  isRest: true
+}));
 
 const UserProfileForm = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -21,13 +33,14 @@ const UserProfileForm = ({ onComplete }) => {
     bodyType: '',
     warriorName: '',
     school: '',
-    experience: '',
+    gymExperience: '',
+    combatExperience: '',
     goals: [],
     exercisePreferences: [],
     equipment: '',
     preferredArts: [],
     primaryAttributes: [],
-    trainingDays: { structure: 3, days: [{ type: 'full', focus: 'gym', location: 'gym', combatTypes: [] }] },
+    trainingDays: { days: createEmptyDays() },
     timeAvailable: { daysPerWeek: 3, sessionLength: 45 },
     injuries: []
   });
@@ -35,11 +48,10 @@ const UserProfileForm = ({ onComplete }) => {
   const steps = [
     { title: "Warrior Identity", subtitle: "Create your fighter identity", fields: ['warriorName'] },
     { title: "Physical Stats", subtitle: "Your basic measurements", fields: ['height', 'weight', 'age', 'bodyType'] },
-    { title: "School & Experience", subtitle: "Choose your path as a warrior", fields: ['school', 'experience'] },
+    { title: "School & Experience", subtitle: "Choose your path as a warrior", fields: ['school', 'gymExperience', 'combatExperience'] },
     { title: "Attributes", subtitle: "Choose your 3 primary attributes", fields: ['primaryAttributes'] },
     { title: "Preferences", subtitle: "Training style preferences", fields: ['exercisePreferences', 'equipment'] },
-    { title: "Training Schedule", subtitle: "Configure your weekly training", fields: ['trainingDays'] },
-    { title: "Schedule & Health", subtitle: "Final details", fields: ['timeAvailable', 'injuries'] }
+    { title: "Training Schedule", subtitle: "Configure your weekly training", fields: ['trainingDays', 'timeAvailable', 'injuries'] }
   ];
 
   const handleInputChange = (field, value) => {
@@ -85,10 +97,11 @@ const UserProfileForm = ({ onComplete }) => {
   const isStepValid = () => {
     const currentFields = steps[currentStep].fields;
     return currentFields.every(field => {
-      if (field === 'primaryAttributes') return formData.primaryAttributes.length > 0;
+      if (field === 'primaryAttributes') return formData.primaryAttributes?.length > 0;
+      if (field === 'gymExperience' || field === 'combatExperience') return formData[field] && formData[field] !== '';
       if (field === 'goals' || field === 'exercisePreferences' || field === 'preferredArts') return formData[field]?.length > 0;
-      if (field === 'trainingDays') return formData.trainingDays?.structure > 0;
-      if (field === 'timeAvailable') return formData.timeAvailable?.daysPerWeek > 0;
+      if (field === 'trainingDays') return formData.trainingDays?.days?.length > 0;
+      if (field === 'timeAvailable') return formData.timeAvailable?.sessionLength > 0;
       if (field === 'injuries') return true;
       return formData[field] && formData[field] !== '';
     });
@@ -102,7 +115,6 @@ const UserProfileForm = ({ onComplete }) => {
       case 3: return <AttributesStep formData={formData} onSelect={handleAttributeSelect} />;
       case 4: return <PreferencesEquipmentStep formData={formData} onMultiSelect={handleMultiSelect} onChange={handleInputChange} />;
       case 5: return <TrainingScheduleStep formData={formData} onChange={handleInputChange} onMultiSelect={handleMultiSelect} />;
-      case 6: return <ScheduleHealthStep formData={formData} onChange={handleInputChange} onMultiSelect={handleMultiSelect} />;
       default: return null;
     }
   };
@@ -141,13 +153,9 @@ const calculateInitialStats = (formData) => {
   const baseStats = { str: 30, spd: 30, def: 30, tec: 30, sta: 30, mnt: 30 };
   const school = warriorSchools[formData.school];
   if (school) {
-    Object.keys(baseStats).forEach(key => {
-      baseStats[key] += school.statsBonus[key] || 0;
-    });
+    Object.keys(baseStats).forEach(key => { baseStats[key] += school.statsBonus[key] || 0; });
   }
-  formData.primaryAttributes.forEach(attr => {
-    baseStats[attr] = Math.min(99, baseStats[attr] + 15);
-  });
+  formData.primaryAttributes.forEach(attr => { baseStats[attr] = Math.min(99, baseStats[attr] + 15); });
   return baseStats;
 };
 
@@ -218,17 +226,41 @@ const SchoolExperienceStep = ({ formData, onChange }) => (
         ))}
       </div>
     </div>
-    <div>
-      <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">Experience Level</label>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Object.values(experienceLevels).map(level => (
-          <button key={level.id} onClick={() => onChange('experience', level.id)}
-            className={`p-4 rounded border-2 transition-all duration-300 text-center ${formData.experience === level.id ? 'border-kengan-red bg-kengan-red/20' : 'border-gray-700 hover:border-gray-500'}`}>
-            <div className="text-3xl mb-2">{level.icon}</div>
-            <h4 className="text-sm font-bold text-white">{level.name}</h4>
-            <p className="text-xs text-gray-400 mt-1">{level.description}</p>
-          </button>
-        ))}
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">🏋️ Experience in Gym</label>
+        <div className="space-y-2">
+          {experienceOptions.gym.map(level => (
+            <button key={level.id} onClick={() => onChange('gymExperience', level.id)}
+              className={`w-full p-4 rounded border-2 transition-all duration-300 text-left ${formData.gymExperience === level.id ? 'border-kengan-red bg-kengan-red/20' : 'border-gray-700 hover:border-gray-500'}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{level.icon}</span>
+                <div>
+                  <h4 className="text-sm font-bold text-white">{level.name}</h4>
+                  <p className="text-xs text-gray-400">{level.desc}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">🥊 Experience in Combat</label>
+        <div className="space-y-2">
+          {experienceOptions.combat.map(level => (
+            <button key={level.id} onClick={() => onChange('combatExperience', level.id)}
+              className={`w-full p-4 rounded border-2 transition-all duration-300 text-left ${formData.combatExperience === level.id ? 'border-purple-500 bg-purple-500/20' : 'border-gray-700 hover:border-gray-500'}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{level.icon}</span>
+                <div>
+                  <h4 className="text-sm font-bold text-white">{level.name}</h4>
+                  <p className="text-xs text-gray-400">{level.desc}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   </div>
@@ -252,7 +284,7 @@ const AttributesStep = ({ formData, onSelect }) => (
       ))}
     </div>
     <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
-      <p className="text-xs text-gray-400">💡 Consejo: Elige atributos que complementen tu escuela. Power Gym: STR+STA+DEF. Fight Club: TEC+SPD+MNT.</p>
+      <p className="text-xs text-gray-400">💡 Consejo: Power Gym: STR+STA+DEF | Fight Club: TEC+SPD+MNT</p>
     </div>
   </div>
 );
@@ -285,108 +317,181 @@ const PreferencesEquipmentStep = ({ formData, onMultiSelect, onChange }) => (
 );
 
 const TrainingScheduleStep = ({ formData, onChange, onMultiSelect }) => {
-  const gymTypes = [{ value: 'upper', label: 'Upper' }, { value: 'lower', label: 'Lower' }, { value: 'full', label: 'Full' }, { value: 'push', label: 'Push' }, { value: 'pull', label: 'Pull' }, { value: 'legs', label: 'Legs' }];
-  const combatTypeOptions = Object.values(combatStyles).map(style => ({ value: style.id, label: `${style.icon} ${style.name}` }));
-  const locationTypes = [{ value: 'home', label: '🏠' }, { value: 'gym', label: '🏋️' }];
+  const gymTypes = [
+    { value: 'push', label: 'Push', icon: '💪' }, 
+    { value: 'pull', label: 'Pull', icon: '🔙' }, 
+    { value: 'legs', label: 'Legs', icon: '🦵' },
+    { value: 'upper', label: 'Upper', icon: '⬆️' }, 
+    { value: 'lower', label: 'Lower', icon: '⬇️' }, 
+    { value: 'full', label: 'Full', icon: '🔥' }
+  ];
+  const combatTypeOptions = Object.values(combatStyles).map(style => ({ 
+    value: style.id, 
+    label: style.name,
+    icon: style.icon,
+    desc: style.description
+  }));
+  const locationTypes = [{ value: 'home', label: '🏠 Casa', desc: 'En casa' }, { value: 'gym', label: '🏋️ Gym', desc: 'Gimnasio' }];
   const typeLabels = { push: 'Push', pull: 'Pull', legs: 'Legs', upper: 'Upper', lower: 'Lower', full: 'Full Body' };
-
-  const handleStructureChange = (structure) => {
-    const newDays = workoutStructures[structure].days.map((d, idx) => ({
-      day: idx, type: d.type, focus: 'gym', location: formData.trainingDays.days[idx]?.location || 'gym', combatTypes: formData.trainingDays.days[idx]?.combatTypes || []
-    }));
-    onChange('trainingDays', { structure: parseInt(structure), days: newDays });
-  };
+  const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
   const handleDayChange = (dayIndex, field, value) => {
+    if (!formData.trainingDays?.days) return;
     const newDays = [...formData.trainingDays.days];
     newDays[dayIndex] = { ...newDays[dayIndex], [field]: value };
-    onChange('trainingDays', { ...formData.trainingDays, days: newDays });
+    onChange('trainingDays', { days: newDays });
   };
 
   const toggleCombatType = (dayIndex, combatType) => {
+    if (!formData.trainingDays?.days) return;
     const newDays = [...formData.trainingDays.days];
     const currentTypes = newDays[dayIndex].combatTypes || [];
     newDays[dayIndex].combatTypes = currentTypes.includes(combatType) ? currentTypes.filter(t => t !== combatType) : [...currentTypes, combatType];
-    onChange('trainingDays', { ...formData.trainingDays, days: newDays });
+    newDays[dayIndex].focus = newDays[dayIndex].combatTypes.length > 0 ? 'combat' : 'gym';
+    onChange('trainingDays', { days: newDays });
   };
+
+  const toggleRest = (dayIndex) => {
+    if (!formData.trainingDays?.days) return;
+    const newDays = [...formData.trainingDays.days];
+    const wasRest = newDays[dayIndex].isRest;
+    newDays[dayIndex].isRest = !wasRest;
+    if (!wasRest) {
+      newDays[dayIndex].type = 'full';
+      newDays[dayIndex].focus = 'gym';
+      newDays[dayIndex].combatTypes = [];
+    }
+    onChange('trainingDays', { days: newDays });
+  };
+
+  const trainingDaysCount = formData.trainingDays?.days?.filter(d => !d.isRest).length || 0;
 
   return (
     <div className="space-y-8">
+      {/* Session Duration */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-bold text-gray-400 mb-3 uppercase tracking-widest">⏱️ Duración por sesión</label>
+          <div className="grid grid-cols-3 gap-2">
+            {[30, 45, 60, 90, 120].map(mins => (
+              <button key={mins} onClick={() => onChange('timeAvailable', { ...formData.timeAvailable, sessionLength: mins })}
+                className={`p-3 rounded border-2 text-sm font-bold transition-all ${formData.timeAvailable?.sessionLength === mins ? 'border-kengan-gold bg-kengan-gold/20 text-kengan-gold' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}>
+                {mins} min
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-400 mb-3 uppercase tracking-widest">🏆 Días de entrenamiento: <span className="text-kengan-gold">{trainingDaysCount}</span></label>
+          <p className="text-xs text-gray-500">Configura cada día manualmente abajo</p>
+        </div>
+      </div>
+
+      {/* Injuries */}
       <div>
-        <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">Training Days per Week</label>
-        <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
-          {[1, 2, 3, 4, 5, 6, 7].map(num => (
-            <button key={num} onClick={() => handleStructureChange(num)}
-              className={`p-3 rounded border-2 transition-all duration-300 text-sm font-bold ${formData.trainingDays.structure === num ? 'border-kengan-gold bg-kengan-gold/20 text-kengan-gold' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}>
-              {num}d
+        <label className="block text-sm font-bold text-gray-400 mb-3 uppercase tracking-widest">💚 Lesiones (opcional)</label>
+        <div className="flex flex-wrap gap-2">
+          {['back', 'knee', 'shoulder', 'wrist', 'ankle', 'hip'].map(injury => (
+            <button key={injury} onClick={() => onMultiSelect('injuries', injury)}
+              className={`px-3 py-2 rounded border-2 text-xs font-bold uppercase transition-all ${formData.injuries?.includes(injury) ? 'border-red-500 bg-red-500/20 text-red-400' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}>
+              {injury}
             </button>
           ))}
         </div>
       </div>
-      <div className="space-y-4">
-        {formData.trainingDays.days.map((day, idx) => (
-          <div key={idx} className="bg-black/40 border border-gray-700 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-white font-bold">Day {idx + 1}: {typeLabels[day.type]}</span>
-              <span className={`text-xs px-2 py-1 rounded ${day.location === 'home' ? 'bg-green-900' : 'bg-blue-900'}`}>{day.location === 'home' ? '🏠' : '🏋️'}</span>
+
+      {/* Manual Day Configuration */}
+      <div>
+        <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">📅 Configura tu semana</label>
+        <div className="space-y-3">
+          {formData.trainingDays.days.map((day, idx) => (
+            <div key={idx} className={`bg-black/50 border-2 rounded-xl p-4 ${day.isRest ? 'border-green-800/50 bg-green-900/10' : 'border-gray-700'}`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-black text-white">{dayNames[idx]}</span>
+                  {day.isRest ? (
+                    <span className="bg-green-600/20 text-green-400 text-xs px-2 py-1 rounded font-bold">☀️ Descanso</span>
+                  ) : (
+                    <span className="bg-kengan-gold/20 text-kengan-gold text-xs px-2 py-1 rounded font-bold">{typeLabels[day.type]}</span>
+                  )}
+                </div>
+                <button onClick={() => toggleRest(idx)} className={`text-xs px-3 py-2 rounded font-bold transition-all ${day.isRest ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}>
+                  {day.isRest ? '✅ Descansando' : '☐ Entrenar'}
+                </button>
+              </div>
+              
+              {!day.isRest && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Tipo Gym */}
+                  <div className="bg-gray-900/50 rounded-lg p-3">
+                    <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">🏋️ Tipo Gym</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {gymTypes.map(g => (
+                        <button key={g.value} onClick={() => { handleDayChange(idx, 'type', g.value); handleDayChange(idx, 'focus', 'gym'); }}
+                          className={`text-xs py-3 rounded-lg font-bold transition-all flex flex-col items-center gap-1 ${
+                            day.type === g.value && !day.isRest 
+                              ? 'bg-kengan-gold text-black shadow-lg ring-2 ring-kengan-gold' 
+                              : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
+                          }`}>
+                          <span className="text-lg">{g.icon}</span>
+                          <span>{g.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Combate */}
+                  <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800/30">
+                    <label className="text-xs font-bold text-purple-400 mb-3 block uppercase tracking-wider">🥊 Combate</label>
+                    <div className="grid grid-cols-3 gap-1 mb-2">
+                      {combatTypeOptions.slice(0, 6).map(ct => {
+                        const isSelected = (day.combatTypes || []).includes(ct.value);
+                        return (
+                          <button key={ct.value} onClick={() => toggleCombatType(idx, ct.value)}
+                            className={`text-xs py-1.5 rounded font-bold transition-all ${isSelected ? 'bg-purple-600 text-white shadow-lg' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+                            title={ct.desc}>
+                            {ct.icon}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {(day.combatTypes || []).length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {day.combatTypes.map(t => {
+                          const style = combatStyles[t];
+                          return style ? (
+                            <span key={t} className="text-[10px] bg-purple-600/30 text-purple-300 px-2 py-0.5 rounded border border-purple-500/50">
+                              {style.icon} {style.name}
+                            </span>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+                    {(day.combatTypes || []).length === 0 && (
+                      <p className="text-[10px] text-gray-500 italic">Selecciona estilos</p>
+                    )}
+                  </div>
+                  
+                  {/* Ubicación */}
+                  <div className="bg-gray-900/50 rounded-lg p-3">
+                    <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">📍 Ubicación</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {locationTypes.map(l => (
+                        <button key={l.value} onClick={() => handleDayChange(idx, 'location', l.value)}
+                          className={`text-xs py-2 rounded font-bold transition-all ${day.location === l.value ? 'bg-kengan-red text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+                          {l.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="flex flex-wrap gap-1">
-                {gymTypes.slice(0, 4).map(g => (
-                  <button key={g.value} onClick={() => handleDayChange(idx, 'type', g.value)}
-                    className={`text-[10px] px-2 py-1 rounded ${day.type === g.value ? 'bg-kengan-gold text-black' : 'bg-gray-800'}`}>{g.label}</button>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {combatTypeOptions.slice(0, 4).map(ct => (
-                  <button key={ct.value} onClick={() => toggleCombatType(idx, ct.value)}
-                    className={`text-[10px] px-1 py-1 rounded ${(day.combatTypes || []).includes(ct.value) ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400'}`}>{ct.icon}</button>
-                ))}
-              </div>
-              <div className="flex gap-1">
-                {locationTypes.map(l => (
-                  <button key={l.value} onClick={() => handleDayChange(idx, 'location', l.value)}
-                    className={`text-xs px-2 py-1 rounded ${day.location === l.value ? 'bg-kengan-red text-white' : 'bg-gray-800'}`}>{l.label}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
 };
-
-const ScheduleHealthStep = ({ formData, onChange, onMultiSelect }) => (
-  <div className="space-y-8">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-widest">Days per Week</label>
-        <select value={formData.timeAvailable.daysPerWeek} onChange={(e) => onChange('timeAvailable.daysPerWeek', parseInt(e.target.value))}
-          className="w-full p-3 bg-black/50 border border-gray-700 rounded text-white focus:border-kengan-gold">
-          {[1, 2, 3, 4, 5, 6].map(days => <option key={days} value={days}>{days} days</option>)}
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-widest">Session (min)</label>
-        <select value={formData.timeAvailable.sessionLength} onChange={(e) => onChange('timeAvailable.sessionLength', parseInt(e.target.value))}
-          className="w-full p-3 bg-black/50 border border-gray-700 rounded text-white focus:border-kengan-gold">
-          {[15, 30, 45, 60, 90, 120].map(m => <option key={m} value={m}>{m} min</option>)}
-        </select>
-      </div>
-    </div>
-    <div>
-      <label className="block text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">Injuries (Optional)</label>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        {['back', 'knee', 'shoulder', 'wrist', 'ankle', 'hip'].map(injury => (
-          <button key={injury} onClick={() => onMultiSelect('injuries', injury)}
-            className={`p-2 rounded border-2 text-xs font-bold uppercase ${formData.injuries.includes(injury) ? 'border-red-500 bg-red-500/20 text-red-400' : 'border-gray-700 text-gray-400'}`}>
-            {injury}
-          </button>
-        ))}
-      </div>
-    </div>
-  </div>
-);
 
 export default UserProfileForm;

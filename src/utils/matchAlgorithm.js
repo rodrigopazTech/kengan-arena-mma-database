@@ -162,7 +162,9 @@ const calculateExperienceCompatibility = (user, fighter) => {
     advanced: [26, 51]     // Experienced fighters
   };
 
-  const ageRange = experienceAgeMap[user.experience];
+  const userExperience = user.gymExperience || user.combatExperience || 'intermediate';
+  const ageRange = experienceAgeMap[userExperience] || experienceAgeMap.intermediate;
+  
   if (fighter.age >= ageRange[0] && fighter.age <= ageRange[1]) {
     score += 12;
     reasoning.push(`Experience level matches ${fighter.name}'s training era`);
