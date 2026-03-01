@@ -290,8 +290,13 @@ const WorkoutPlanView = ({ workoutPlan, fighter, onBack, onViewDetails }) => {
         <div className="flex overflow-x-auto border-b border-gray-800">
           {Object.keys(workoutPlan.dailyWorkouts).map(day => {
             const dayConfig = workoutPlan.dailyWorkouts[day].dayConfig;
+            const combatTypes = dayConfig?.combatTypes || [];
             const locationIcon = dayConfig?.location === 'home' ? '🏠' : '🏋️';
             const typeIcon = dayConfig?.focus === 'combate' ? '🥊' : dayConfig?.focus === 'gym' ? '💪' : '🔥';
+            const combatStyleIcons = combatTypes.map(t => {
+              const styleMap = { boxing: '🥊', muay_thai: '🦵', bjj: '🟢', wrestling: '🤼', hardening: '�岩石', mma: '🎯' };
+              return styleMap[t] || '⚔️';
+            }).join('');
             return (
               <button
                 key={day}
@@ -303,7 +308,7 @@ const WorkoutPlanView = ({ workoutPlan, fighter, onBack, onViewDetails }) => {
                 }`}
               >
                 <span>{day}</span>
-                <span className="text-[10px] mt-1">{locationIcon} {typeIcon}</span>
+                <span className="text-[10px] mt-1">{locationIcon} {typeIcon} {combatStyleIcons}</span>
               </button>
             );
           })}
@@ -456,8 +461,26 @@ const DailyWorkoutDisplay = ({ workout, dayName }) => {
       {workout.isCombat && workout.combatRounds && (
         <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-800/50">
           <h4 className="text-sm font-bold text-purple-400 mb-2 uppercase tracking-widest">
-            🥊 COMBAT TRAINING - {workout.combatRounds.styles}
+            🥊 COMBAT TRAINING
           </h4>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {workout.dayConfig?.combatTypes?.map((type, idx) => {
+              const styleMap = { 
+                boxing: { icon: '🥊', name: 'Boxeo' }, 
+                muay_thai: { icon: '🦵', name: 'Muay Thai' }, 
+                bjj: { icon: '🟢', name: 'BJJ' }, 
+                wrestling: { icon: '🤼', name: 'Wrestling' }, 
+                hardening: { icon: '🪨', name: 'Endurecimiento' },
+                mma: { icon: '🎯', name: 'MMA' }
+              };
+              const style = styleMap[type] || { icon: '⚔️', name: type };
+              return (
+                <span key={idx} className="bg-purple-800/50 text-purple-200 text-xs px-2 py-1 rounded border border-purple-600">
+                  {style.icon} {style.name}
+                </span>
+              );
+            })}
+          </div>
           <div className="flex gap-4 text-xs text-purple-300 mb-4">
             <span>📊 {workout.combatRounds.numRounds} Rounds</span>
             <span>⏱️ {workout.combatRounds.roundLength} min/round</span>

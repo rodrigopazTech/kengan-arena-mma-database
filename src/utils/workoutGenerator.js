@@ -47,7 +47,7 @@ export const generateWorkoutPlan = (userProfile, matchedFighter) => {
         combatTypes: combatTypes
       },
       focusArea: hasGym ? getFocusForDayType(dayConfig.type) : 'combat',
-      warmUp: generateWarmUp(hasGym ? getFocusForDayType(dayConfig.type) : 'striking'),
+      warmUp: generateWarmUp(hasGym ? getFocusForDayType(dayConfig.type) : 'striking', hasCombat, combatTypes),
       gymExercises: gymExercises,
       combatRounds: combatRounds,
       coolDown: generateCoolDown(hasGym ? getFocusForDayType(dayConfig.type) : 'striking'),
@@ -205,8 +205,17 @@ const getFocusForDayType = (dayType) => {
   return typeMap[dayType] || 'conditioning';
 };
 
-const generateWarmUp = (focusArea) => {
-  const warmUpOptions = {
+const generateWarmUp = (focusArea, hasCombat = false, combatTypes = []) => {
+  const footworkDrills = [
+    "Shadow boxing con movimiento",
+    "Step-drill lateral",
+    "Pivot drills (giros)",
+    "Forward-backward movement",
+    "Circle walking",
+    "In-and-out footwork"
+  ];
+  
+  const baseWarmUp = {
     striking: ["Light shadow boxing", "Arm circles", "Shoulder rolls"],
     grappling: ["Hip circles", "Leg swings", "Spinal twists"], 
     strength: ["Joint mobility", "Dynamic stretching", "Bodyweight movements"],
@@ -214,10 +223,18 @@ const generateWarmUp = (focusArea) => {
     technique: ["Slow form practice", "Joint mobility", "Mental preparation"],
     speed: ["Light movement", "Dynamic warm-up", "Activation drills"],
     flexibility: ["Gentle stretching", "Joint circles", "Breath work"],
-    mental: ["Breathing exercises", "Focus meditation", "Gentle movement"]
+    mental: ["Breathing exercises", "Focus meditation", "Gentle movement"],
+    combat: [...footworkDrills, "Arm circles", "Hip mobility"]
   };
 
-  return warmUpOptions[focusArea] || warmUpOptions.conditioning;
+  const warmUp = baseWarmUp[focusArea] || baseWarmUp.conditioning;
+  
+  if (hasCombat && combatTypes.length > 0) {
+    const selectedFootwork = footworkDrills.slice(0, 3);
+    return [...selectedFootwork, ...warmUp.slice(0, 2)];
+  }
+  
+  return warmUp;
 };
 
 const generateMainWorkout = (focusArea, styleExercises, allExercises, sessionLength, userProfile) => {
