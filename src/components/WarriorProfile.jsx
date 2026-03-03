@@ -7,7 +7,7 @@ import KnowledgeBase from './KnowledgeBase.jsx';
 
 const WarriorProfile = ({ warriorData, workoutPlan, onUpdateProgress }) => {
   const [activeTab, setActiveTab] = useState('profile');
-  const { warriorName, school, experience, stats, tier, currentWeek, xp, primaryAttributes, rival, completedMissions = [] } = warriorData;
+  const { warriorName, school, experience, stats, tier, currentWeek, xp, primaryAttributes, rival, completedMissions = [], fatigueLevel = 0, trainingHistory = [] } = warriorData;
   const schoolData = warriorSchools[school] || {};
   const currentTier = tier || getTierForXp(xp || 0);
   
@@ -21,6 +21,21 @@ const WarriorProfile = ({ warriorData, workoutPlan, onUpdateProgress }) => {
   };
 
   const weekProgress = ((currentWeek - 1) / 16) * 100;
+  const fatigue = Math.min(100, Math.max(0, fatigueLevel));
+  
+  const getFatigueColor = () => {
+    if (fatigue < 30) return 'bg-green-500';
+    if (fatigue < 60) return 'bg-yellow-500';
+    if (fatigue < 80) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+  
+  const getFatigueMessage = () => {
+    if (fatigue < 30) return '¡Energía maxima!';
+    if (fatigue < 60) return 'Entrenamiento normal';
+    if (fatigue < 80) return '⚠️ Fatiga acumulada - considera descansar';
+    return '🔴¡Descanso obligatorio!';
+  };
 
   const handleCompleteMission = (mission) => {
     if (completedMissions?.includes(mission.id)) return;
@@ -93,6 +108,34 @@ const WarriorProfile = ({ warriorData, workoutPlan, onUpdateProgress }) => {
             <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
               <motion.div className="h-full bg-gradient-to-r from-kengan-red to-kengan-gold"
                 initial={{ width: 0 }} animate={{ width: `${weekProgress}%` }} />
+            </div>
+          </div>
+
+          {/* Fatigue Bar */}
+          <div className="p-3 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800/50">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs text-gray-400 flex items-center gap-1">
+                🔋 Energía
+              </span>
+              <span className={`text-xs font-bold ${
+                fatigue < 30 ? 'text-green-400' : 
+                fatigue < 60 ? 'text-yellow-400' : 
+                fatigue < 80 ? 'text-orange-400' : 'text-red-400'
+              }`}>
+                {getFatigueMessage()}
+              </span>
+            </div>
+            <div className="w-full bg-gray-700 h-3 rounded-full overflow-hidden">
+              <motion.div 
+                className={`h-full ${getFatigueColor()}`}
+                initial={{ width: 0 }} 
+                animate={{ width: `${100 - fatigue}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            </div>
+            <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+              <span>Agotado</span>
+              <span>100%</span>
             </div>
           </div>
 

@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useWisdom } from './WisdomTooltip.jsx';
 
 const FighterMatchReveal = ({ matchResult, workoutPlan }) => {
   const [currentView, setCurrentView] = useState('reveal'); // 'reveal', 'workout', 'details'
   const { fighter, score, reasoning, matchLevel } = matchResult;
+  const { showWisdom, WisdomTooltip } = useWisdom();
+
+  const handleCompleteExercise = () => {
+    showWisdom();
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
+      <WisdomTooltip />
       <AnimatePresence mode="wait">
         {currentView === 'reveal' && (
           <MatchRevealView 
@@ -538,6 +545,19 @@ const DailyWorkoutDisplay = ({ workout, dayName }) => {
 };
 
 const DetailedWorkoutView = ({ workoutPlan, onBack }) => {
+  const { showWisdom, WisdomTooltip } = useWisdom();
+  const [completedExercises, setCompletedExercises] = useState({});
+
+  const toggleExercise = (dayKey, exerciseIndex) => {
+    setCompletedExercises(prev => ({
+      ...prev,
+      [`${dayKey}-${exerciseIndex}`]: !prev[`${dayKey}-${exerciseIndex}`]
+    }));
+    if (!completedExercises[`${dayKey}-${exerciseIndex}`]) {
+      showWisdom();
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -546,6 +566,8 @@ const DetailedWorkoutView = ({ workoutPlan, onBack }) => {
       transition={{ duration: 0.5 }}
       className="bg-kengan-card border border-gray-800 rounded-2xl p-8"
     >
+      <WisdomTooltip />
+      
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={onBack}
@@ -561,14 +583,176 @@ const DetailedWorkoutView = ({ workoutPlan, onBack }) => {
         </button>
       </div>
 
-      <h2 className="text-3xl font-black italic text-white mb-8">
+      <h2 className="text-3xl font-black italic text-white mb-2">
         Complete Weekly Training Plan
       </h2>
+      <p className="text-gray-400 mb-8 text-sm">
+        {workoutPlan.fighterInfo.philosophy}
+      </p>
 
-      {/* Detailed view content would go here */}
-      <div className="text-center py-12 text-gray-400">
-        <p className="text-lg">Detailed workout plan view</p>
-        <p className="text-sm mt-2">Full exercise descriptions, progression tracking, and downloadable formats</p>
+      {/* Resumen de la semana */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+          <div className="text-2xl font-black text-kengan-gold">
+            {Object.keys(workoutPlan.dailyWorkouts).filter(d => !workoutPlan.dailyWorkouts[d].dayConfig?.isRest).length}
+          </div>
+          <div className="text-xs text-gray-400 uppercase">Días Activos</div>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+          <div className="text-2xl font-black text-kengan-gold">
+            {Object.values(workoutPlan.dailyWorkouts).filter(d => d.isCombat).length}
+          </div>
+          <div className="text-xs text-gray-400 uppercase">Días Combate</div>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+          <div className="text-2xl font-black text-kengan-gold">
+            {Math.round(workoutPlan.estimatedDuration.totalWeeklyMinutes / 60)}h
+          </div>
+          <div className="text-xs text-gray-400 uppercase">Total Semanal</div>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+          <div className="text-2xl font-black text-kengan-gold">
+            {workoutPlan.estimatedDuration.estimatedIntensity.split('_')[0]}
+          </div>
+          <div className="text-xs text-gray-400 uppercase">Intensidad</div>
+        </div>
+      </div>
+
+      {/* Días detallados */}
+      <div className="space-y-6">
+        {Object.entries(workoutPlan.dailyWorkouts).map(([dayName, workout]) => {
+          if (workout.dayConfig?.isRest) return null;
+          
+          return (
+            <div key={dayName} className="bg-gray-900/50 rounded-xl border border-gray-700 overflow-hidden">
+              <div className="bg-gradient-to-r from-kengan-gold/20 to-transparent p-4 border-b border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-black text-white capitalize">{dayName}</h3>
+                  <div className="flex gap-2">
+                    {workout.isGym && <span className="bg-kengan-gold/20 text-kengan-gold text-xs px-2 py-1 rounded">💪 Gym</span>}
+                    {workout.isCombat && <span className="bg-purple-600/20 text-purple-400 text-xs px-2 py-1 rounded">🥊 Combate</span>}
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      workout.intensity === 'High' ? 'bg-red-900/30 text-red-400' :
+                      workout.intensity === 'Moderate' ? 'bg-yellow-900/30 text-yellow-400' :
+                      'bg-green-900/30 text-green-400'
+                    }`}>
+                      {workout.intensity}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-4">
+                {/* Warm Up */}
+                <div>
+                  <h4 className="text-sm font-bold text-blue-400 mb-2 flex items-center gap-2">
+                    🏃 Warm Up
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {workout.warmUp.map((item, i) => (
+                      <span key={i} className="bg-blue-900/30 text-blue-200 text-xs px-2 py-1 rounded">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Gym Exercises */}
+                {workout.isGym && workout.gymExercises && (
+                  <div>
+                    <h4 className="text-sm font-bold text-kengan-gold mb-2 flex items-center gap-2">
+                      🏋️ Ejercicios de Gym
+                    </h4>
+                    <div className="space-y-2">
+                      {workout.gymExercises.map((ex, i) => (
+                        <div key={i} className="bg-black/40 rounded-lg p-3 border border-gray-700">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h5 className="font-bold text-white">{ex.name}</h5>
+                              <p className="text-xs text-gray-400 mt-1">{ex.muscles?.join(', ')}</p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-kengan-gold font-bold text-sm">
+                                {ex.sets}×{ex.reps}
+                              </span>
+                              {ex.weight && (
+                                <p className="text-xs text-gray-500">{ex.weight}</p>
+                              )}
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleCompleteExercise()}
+                            className="mt-2 w-full bg-green-900/30 hover:bg-green-800/50 text-green-400 text-xs py-2 rounded transition-colors flex items-center justify-center gap-2"
+                          >
+                            ✓ Completar - Obtener sabiduría
+                          </button>
+                          {ex.hasSubstitution && ex.substitution && (
+                            <div className="mt-2 text-xs text-yellow-400 bg-yellow-900/20 p-2 rounded">
+                              ⚠️ Sustitución: {ex.substitution.name}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Combat Rounds */}
+                {workout.isCombat && workout.combatRounds && (
+                  <div>
+                    <h4 className="text-sm font-bold text-purple-400 mb-2 flex items-center gap-2">
+                      🥊 Rondas de Combate
+                    </h4>
+                    <div className="flex gap-4 text-xs text-purple-300 mb-3">
+                      <span>📊 {workout.combatRounds.numRounds} Rounds</span>
+                      <span>⏱️ {workout.combatRounds.roundLength} min/round</span>
+                    </div>
+                    <div className="space-y-2">
+                      {workout.combatRounds.rounds.map((round, rIdx) => (
+                        <div key={rIdx} className="bg-black/40 rounded-lg p-3 border border-gray-700">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-purple-400 font-bold">Round {round.round}</span>
+                            <span className="text-xs text-gray-500">{round.duration} min</span>
+                          </div>
+                          <div className="space-y-1">
+                            {round.combos.map((combo, cIdx) => (
+                              <div key={cIdx} className="flex items-center text-sm">
+                                <span className="text-gray-500 mr-2">▶</span>
+                                <span className="text-white font-bold">{combo.name}</span>
+                                <span className="text-gray-400 text-xs ml-2">- {combo.description}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Cool Down */}
+                <div>
+                  <h4 className="text-sm font-bold text-green-400 mb-2 flex items-center gap-2">
+                    ❄️ Cool Down
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {workout.coolDown.map((item, i) => (
+                      <span key={i} className="bg-green-900/30 text-green-200 text-xs px-2 py-1 rounded">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className="bg-gray-800/50 rounded-lg p-3">
+                  <p className="text-sm text-gray-300 italic">
+                    <strong className="text-kengan-gold">📝 Nota:</strong> {workout.notes}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </motion.div>
   );
