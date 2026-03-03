@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { tierSystem, warriorSchools, attributes } from '../data/warriorSystem.js';
 import MissionBoard from './MissionBoard.jsx';
 import ArenaStats from './ArenaStats.jsx';
+import KnowledgeBase from './KnowledgeBase.jsx';
 
 const WarriorProfile = ({ warriorData, workoutPlan, onUpdateProgress }) => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -46,6 +47,7 @@ const WarriorProfile = ({ warriorData, workoutPlan, onUpdateProgress }) => {
       <div className="flex border-b border-gray-800">
         {[
           { id: 'profile', label: '⚔️', title: 'Perfil' },
+          { id: 'knowledge', label: '📚', title: 'Saberes' },
           { id: 'missions', label: '📜', title: 'Misiones' },
           { id: 'arena', label: '🏆', title: 'Arena' }
         ].map(tab => (
@@ -132,6 +134,13 @@ const WarriorProfile = ({ warriorData, workoutPlan, onUpdateProgress }) => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Knowledge Tab */}
+      {activeTab === 'knowledge' && (
+        <div className="p-4">
+          <KnowledgeBase />
         </div>
       )}
 
