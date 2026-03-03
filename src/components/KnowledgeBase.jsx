@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 import { knowledgeArticles, getRandomTip } from '../data/knowledgeBase.js';
 
 const categories = [
@@ -108,10 +109,24 @@ const KnowledgeBase = ({ compact = false }) => {
                   </div>
                 </div>
               </div>
-              <div className="p-6 prose prose-invert prose-sm max-w-none">
-                <div className="text-gray-300 whitespace-pre-line">
+              <div className="p-6">
+                <ReactMarkdown 
+                  className="text-gray-300 space-y-4 text-sm leading-relaxed
+                    [&_h1]:text-xl [&_h1]:font-black [&_h1]:text-kengan-gold [&_h1]:mb-3 [&_h1]:mt-4
+                    [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-2 [&_h2]:mt-3
+                    [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-gray-300 [&_h3]:mb-1 [&_h3]:mt-2
+                    [&_p]:mb-2 [&_p]:text-gray-400
+                    [&_strong]:text-kengan-gold [&_strong]:font-bold
+                    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ul]:text-gray-400
+                    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_ol]:text-gray-400
+                    [&_li]:text-gray-400
+                    [&_blockquote]:border-l-4 [&_blockquote]:border-kengan-gold [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-400
+                    [&_hr]:border-gray-700 [&_hr]:my-4
+                    [&_span]:text-kengan-red
+                  "
+                >
                   {selectedArticle.content}
-                </div>
+                </ReactMarkdown>
               </div>
               <div className="p-4 border-t border-gray-800">
                 <button
