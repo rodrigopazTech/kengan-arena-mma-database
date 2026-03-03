@@ -109,21 +109,20 @@ const KnowledgeBase = ({ compact = false }) => {
                   </div>
                 </div>
               </div>
-              <div className="p-6">
-                <ReactMarkdown 
-                  className="text-gray-300 space-y-4 text-sm leading-relaxed
-                    [&_h1]:text-xl [&_h1]:font-black [&_h1]:text-kengan-gold [&_h1]:mb-3 [&_h1]:mt-4
-                    [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-white [&_h2]:mb-2 [&_h2]:mt-3
-                    [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-gray-300 [&_h3]:mb-1 [&_h3]:mt-2
-                    [&_p]:mb-2 [&_p]:text-gray-400
-                    [&_strong]:text-kengan-gold [&_strong]:font-bold
-                    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ul]:text-gray-400
-                    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_ol]:text-gray-400
-                    [&_li]:text-gray-400
-                    [&_blockquote]:border-l-4 [&_blockquote]:border-kengan-gold [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-400
-                    [&_hr]:border-gray-700 [&_hr]:my-4
-                    [&_span]:text-kengan-red
-                  "
+              <div className="p-6 text-gray-300 text-sm leading-relaxed space-y-4">
+                <ReactMarkdown
+                  components={{
+                    h1: ({node, ...props}) => <h1 className="text-xl font-black text-kengan-gold mb-3 mt-4" {...props} />,
+                    h2: ({node, ...props}) => <h2 className="text-lg font-bold text-white mb-2 mt-3" {...props} />,
+                    h3: ({node, ...props}) => <h3 className="text-base font-bold text-gray-300 mb-1 mt-2" {...props} />,
+                    p: ({node, ...props}) => <p className="mb-2 text-gray-400" {...props} />,
+                    strong: ({node, ...props}) => <strong className="text-kengan-gold font-bold" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc pl-5 space-y-1 text-gray-400" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal pl-5 space-y-1 text-gray-400" {...props} />,
+                    li: ({node, ...props}) => <li className="text-gray-400" {...props} />,
+                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-kengan-gold pl-4 italic text-gray-400" {...props} />,
+                    hr: ({node, ...props}) => <hr className="border-gray-700 my-4" {...props} />,
+                  }}
                 >
                   {selectedArticle.content}
                 </ReactMarkdown>
